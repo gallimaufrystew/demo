@@ -1,0 +1,22 @@
+
+# Install x-related to compile x11vnc from source code.
+sudo apt-get update 
+sudo apt-get install -y libxtst-dev libssl-dev libjpeg-dev
+
+# Grep source code.
+wget http://x11vnc.sourceforge.net/dev/x11vnc-0.9.14-dev.tar.gz
+gzip -dc x11vnc-0.9.14-dev.tar.gz | tar -xvf -
+cd x11vnc-0.9.14/
+./configure --prefix=/usr/local CFLAGS='-g -O2 -fno-stack-protector -Wall'
+
+# Make and Make install.
+make
+make install
+
+# Grep lighdm auth file.
+ps wwwwaux | grep auth
+
+# Run x11vnc.
+/usr/local/bin/x11vnc -auth /var/run/lightdm/root/:0 -display :0 -xkb -forever -shared -rfbport 20000
+
+# Use the chrome vnc client. Login Ubuntu and press ESC. Problems solved.
