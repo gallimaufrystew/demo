@@ -47,17 +47,14 @@ int timeout_connect(int fd, struct sockaddr *addr, socklen_t sock_len)
         if (errno == EINPROGRESS) {
 
             fd_set rset, wset;
-            struct timeval tv = {};
+            struct timeval tv = {10, 0};
 
             FD_ZERO(&rset);
             FD_ZERO(&wset);
             
             FD_SET(fd, &rset);
             FD_SET(fd, &wset);
-            
-            tv.tv_sec = 10;
-            tv.tv_usec = 0;
-            
+
             rc = select(fd + 1, &rset, &wset, NULL, &tv);
             if (rc <= 0) {
                 std::fprintf(stderr, "connect ERR: %s\n", strerror(errno));
