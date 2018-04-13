@@ -1,0 +1,22 @@
+
+1 using loop recv or send to ensure to get what we want to  extactly read or write
+
+2 send,recv,accept,connect function call should not block forever, 
+  otherwise io multiplexing was defeated
+
+3 auto reestablishing ssl connection
+
+4 simple configuration file was added
+
+5 signal handling was added
+
+6 checking invalid socket
+
+7 supporting both linux and windows
+
+unfixed known bug
+
+on the ssl client side, previously closed client socket were 
+assigned to new connection by OS leads to the wrong message handling
+because the ssl server has no clue of this
+
