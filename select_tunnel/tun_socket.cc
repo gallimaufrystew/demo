@@ -38,54 +38,63 @@ int socket_block(int fd)
 
 #endif
 
+static int check_connect(int fd)
+{
+	for ( ;; ) {
+		
+		fd_set fdset;
+	
+		FD_ZERO(&fdset);
+		FD_SET(fd, &fdset);
+	
+		struct timeval tv = {10, 0};
+	
+		int res = select(fd + 1, NULL, &fdset, NULL, &tv);
+		if (res < 0 && errno != EINTR) {
+			std::fprintf(stderr, "|select| %d - %s\n", errno, strerror(errno));
+			return -1;
+		} else if (res > 0) {
+			int val;
+			socklen_t len = sizeof(int);
+			if (getsockopt(fd, SOL_SOCKET, SO_ERROR, (char *)(&val), &len) < 0) {
+				std::fprintf(stderr, "|getsockopt| %d - %s\n", errno, strerror(errno));
+				return -1;
+			}
+			if (val) {
+				fprintf(stderr, "|getsockopt=| %d - %s\n", val, strerror(val));
+				return -1;
+			}
+			break;
+		}
+	}
+
+	return 0;
+}
+
 int timeout_connect(int fd, struct sockaddr *addr, socklen_t sock_len)
 {
     socket_nonblock(fd);
 
-    int rc = connect(fd, addr, sock_len);
-    if (rc != 0) {
-        if (errno == EINPROGRESS) {
+    int res = connect(fd, addr, sock_len);
+    if (res == -1) {
+        int err = errno;
+        if (err == EINPROGRESS || err == WSAEWOULDBLOCK || err == EAGAIN) {
 
-            fd_set rset, wset;
-            struct timeval tv = {10, 0};
+			if (check_connect(fd) != 0) {
+				return -1;
+			}
 
-            FD_ZERO(&rset);
-            FD_ZERO(&wset);
-            
-            FD_SET(fd, &rset);
-            FD_SET(fd, &wset);
-
-            rc = select(fd + 1, &rset, &wset, NULL, &tv);
-            if (rc <= 0) {
-                std::fprintf(stderr, "connect ERR: %s\n", strerror(errno));
-                close(fd);
-                return -1;
-            }
-
-            if (rc == 1 && FD_ISSET(fd, &wset)) {
-                std::cout << "connect success\n";
-                socket_block(fd);
-                return 0;
-            } else if (rc == 2) {
-                int err = 0;
-                int elen = sizeof(err);
-                if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &elen) == -1) {
-                    std::fprintf(stderr, "getsockopt(SO_ERROR): %s", strerror(errno));
-                    close(fd);
-                    return -1;
-                }
-                if (err) {
-                    errno = err;
-                    std::fprintf(stderr, "connect ERR: %s\n", strerror(errno));
-                    close(fd);
-                    return -1;
-                }
-            }
-
-        } 
-        std::fprintf(stderr, "connect ERR: %s\n", strerror(errno));
-        return -1;
+        } else if (err == 0) {
+            socket_block(fd);
+            return 0;
+        } else {
+            std::fprintf(stderr, "|connect| %d - %s\n", errno, strerror(errno));
+            return -1;
+        }
     }
+	
     socket_block(fd);
+	
     return 0;
 }
+
