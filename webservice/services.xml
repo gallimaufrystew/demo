@@ -1,0 +1,14 @@
+<service name="strop">
+    <parameter name="ServiceClass" locked="xsd:false">strop</parameter>
+
+   <description>
+        This is a string function service
+   </description>
+   
+    <operation name="add">
+    </operation>
+
+    <operation name="reverse">
+    </operation>
+
+</service>
