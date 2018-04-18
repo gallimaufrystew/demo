@@ -2,3 +2,7 @@
 If you have a system with Linux PAM installed and working, 
 be careful when modifying the files in /etc/pam.d, 
 since your system may become totally unusable.
+
+
+sudo dpkg-reconfigure gdm
+
