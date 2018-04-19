@@ -1,0 +1,6 @@
+
+Sometimes, when waking up from hybernation, the wireless interface was down. 
+Trying to restart wpa_supplicant or dhcpcd is futile...for my NIC, 
+I have to restart computer or unloading kernel module rtl8192se and loading it again...
+maybe compiling wireless module into kernel can be another solution...
+
